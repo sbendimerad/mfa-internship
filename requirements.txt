@@ -1,0 +1,13 @@
+numpy
+scipy
+matplotlib
+pandas
+seaborn
+scikit-learn
+sktime
+numba
+mne
+mne_bids
+python-picard
+git+https://github.com/neurospin/pymultifracs.git
+

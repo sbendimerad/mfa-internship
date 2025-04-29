@@ -1,0 +1,7 @@
+*.mat
+*.fif
+*.npy
+__pycache__/
+.ipynb_checkpoints/
+notebooks/00_mne_tutorials/
+data/
