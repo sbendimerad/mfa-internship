@@ -5,3 +5,4 @@ __pycache__/
 .ipynb_checkpoints/
 notebooks/00_mne_tutorials/
 data/*
+figures/*
