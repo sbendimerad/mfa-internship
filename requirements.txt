@@ -11,5 +11,6 @@ mne_bids
 python-picard
 EMD-signal
 ewtpy
+mvmd_python
 git+https://github.com/neurospin/pymultifracs.git
 
