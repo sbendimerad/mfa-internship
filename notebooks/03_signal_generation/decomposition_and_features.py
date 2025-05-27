@@ -141,7 +141,6 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
     plt.savefig(os.path.join(method_fig_dir, f'channel_{ch}_{method}_overview.png'))
     plt.close()
 
-
 def plot_mvmd_grid(signal_data, mvmd_result, sfreq, output_path, downsample=True, max_points=5000):
 
     K, T, C = mvmd_result.shape
