@@ -96,9 +96,14 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
 
     # Handle downsampling
     step = max(1, int(n_samples_to_plot / max_points)) if max_points else 1
-    t = np.linspace(0, n_samples_to_plot / sfreq, n_samples_to_plot)[::step]
     x_ds = x[::step]
     modes_ds = modes[:, ::step]
+
+    # Fix time vector length to match downsampled signal
+    t = np.linspace(0, len(x_ds) / sfreq, len(x_ds))
+
+    # Safety check
+    assert len(t) == len(x_ds), f"Mismatched time ({len(t)}) and signal ({len(x_ds)}) lengths"
 
     # Prepare saving directory
     method_fig_dir = os.path.join(output_dir, method, "figures")
@@ -116,7 +121,7 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
     plt.title(f'Original Signal - Ch{ch}')
     plt.xlabel('Time (s)')
 
-    # Spectrum (no downsampling here)
+    # Spectrum (no downsampling)
     plt.subplot(nrows, ncols, 2)
     f_fft = np.fft.fft(x)
     f_fft = np.abs(f_fft[:len(f_fft)//2])
@@ -135,6 +140,7 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
     plt.tight_layout()
     plt.savefig(os.path.join(method_fig_dir, f'channel_{ch}_{method}_overview.png'))
     plt.close()
+
 
 def plot_mvmd_grid(signal_data, mvmd_result, sfreq, output_path, downsample=True, max_points=5000):
 
