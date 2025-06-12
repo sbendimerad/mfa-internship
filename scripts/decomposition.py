@@ -14,9 +14,9 @@ from features import extract_mode_features
 def run_all_decompositions(signal_in, Fs, Nmodes,MaxEmdIMF,MaxVmdModes,
                            methods=None,
                            eemd_trials=50,
-                           vmd_alpha=500,
-                           vmd_tau=1,
-                           vmd_DC=1,
+                           vmd_alpha=2000,
+                           vmd_tau=0,
+                           vmd_DC=0,
                            vmd_init=1,
                            vmd_tol=1e-5,
                            return_modes=False):

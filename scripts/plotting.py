@@ -17,8 +17,8 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
     step = max(1, int(n_samples_to_plot / max_points)) if max_points else 1
     x_ds = x[::step]
     modes_ds = modes[:, ::step]
-
-    t = np.linspace(0, len(x_ds) / sfreq, len(x_ds))
+    
+    t = np.arange(len(x_ds)) * step / sfreq
     assert len(t) == len(x_ds), f"Mismatch in time ({len(t)}) and signal ({len(x_ds)}) length"
 
     method_fig_dir = os.path.join(output_dir, method, "figures")
