@@ -11,33 +11,34 @@ sys.path.append(os.path.abspath(os.path.join(os.getcwd())))
 from features import extract_mode_features
 
 
-def run_all_decompositions(signal_in, Fs, Nmodes,MaxEmdIMF,MaxVmdModes,
+def run_all_decompositions(signal_in, Fs, Nmodes, MaxEmdIMF, MaxVmdModes,
                            methods=None,
                            eemd_trials=50,
-                           vmd_alpha=2000,
+                           vmd_alpha=50,
                            vmd_tau=0,
                            vmd_DC=0,
-                           vmd_init=1,
-                           vmd_tol=1e-5,
-                           return_modes=False):
+                           vmd_init=0,
+                           vmd_tol=1e-7,
+                           return_modes=True):
+    
     """
-    Run multiple decomposition methods on a signal and extract features.
+    Run multiple decomposition methods on a signal and return modes only.
+    Feature extraction is done separately.
 
     Parameters:
         signal_in (np.array): Input 1D signal.
         Fs (int): Sampling frequency in Hz.
         Nmodes (int): Number of modes to extract.
         methods (list): List of method names to apply.
-        return_modes (bool): If True, also returns the raw modes.
+        return_modes (bool): If True, returns dictionary of modes.
 
     Returns:
-        dict: Feature dictionary.
-        dict (optional): Dictionary of extracted modes.
+        dict: Dictionary of extracted modes if return_modes=True.
+        None: otherwise.
     """
     if methods is None:
         methods = ['EMD', 'EEMD', 'CEEMDAN', 'EWT', 'VMD', 'VMDtransformer']
 
-    results = {}
     modes_out = {}
 
     for method in methods:
@@ -82,26 +83,15 @@ def run_all_decompositions(signal_in, Fs, Nmodes,MaxEmdIMF,MaxVmdModes,
                 continue
 
             exec_time = time.time() - start_time
+            print(f"{method} decomposition done in {exec_time:.2f} seconds.")
+
             modes_out[method] = IMFs
-
-            # --- Feature Extraction ---
-            all_feats = []
-            all_labels = []
-
-            for idx, mode in enumerate(IMFs):
-                feats, labels = extract_mode_features(mode, Fs)
-                all_feats.extend(feats)
-                all_labels.extend([f"{label}{idx}" for label in labels])
-
-            all_feats.append(exec_time)
-            all_labels.append("decTime")
-            all_feats.append(len(IMFs))
-            all_labels.append("n_modes")
-
-            results[method] = {"labels": all_labels, "values": all_feats}
 
         except Exception as e:
             print(f"Error processing {method}: {e}")
             continue
 
-    return (results, modes_out) if return_modes else results
+    if return_modes:
+        return modes_out
+    else:
+        return None

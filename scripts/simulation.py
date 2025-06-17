@@ -3,6 +3,7 @@ from pymultifracs.simul import mrw_cumul, fbm
 import mne
 
 
+
 def generate_synthetic_neural_signal(fs=250, n_samples=82500, frequencies=[6, 10, 30, 80], 
                                      c1=0.0, c2=0.0, H=0.98,
                                      add_fbm_noise=False, add_powerline=False):

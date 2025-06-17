@@ -1,4 +1,6 @@
+import os
 import numpy as np
+import pandas as pd
 from scipy.signal import periodogram
 from scipy.stats import entropy, kurtosis, skew
 
@@ -50,3 +52,31 @@ def extract_mode_features(mode, Fs):
     labels.append("Hcomp")
 
     return features, labels
+
+def compute_features_from_modes_and_save(modes_path, output_features_path, Fs):
+    """
+    Load saved modes from a .npy file,
+    compute features for each mode,
+    save all features as CSV.
+
+    Parameters:
+        modes_path (str): Path to .npy file with modes (shape: n_modes x n_samples).
+        output_features_path (str): Path to save features CSV.
+        Fs (float): Sampling frequency.
+
+    Returns:
+        None
+    """
+    modes = np.load(modes_path)
+    all_features = []
+    all_labels = []
+
+    for idx, mode in enumerate(modes):
+        feats, labels = extract_mode_features(mode, Fs)
+        all_features.extend(feats)
+        all_labels.extend([f"{label}{idx}" for label in labels])
+
+    df = pd.DataFrame([all_features], columns=all_labels)
+    os.makedirs(os.path.dirname(output_features_path), exist_ok=True)
+    df.to_csv(output_features_path, index=False)
+    print(f"Features saved to {output_features_path}")

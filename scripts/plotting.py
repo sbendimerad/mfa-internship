@@ -1,11 +1,29 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.signal import welch, windows
 
-
-def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None, max_points=1000):
+def compute_spectrum(signal, sfreq, method='fft'):
     """
-    Plot original signal, spectrum, and decomposed modes.
+    Compute frequency and spectrum amplitude based on chosen method.
+    """
+    if method == 'fft':
+        f = np.fft.fftfreq(len(signal), d=1/sfreq)[:len(signal)//2]
+        S = np.abs(np.fft.fft(signal))[:len(signal)//2]
+    elif method == 'psd':
+        f, S = welch(signal, fs=sfreq, nperseg=1024)
+    elif method == 'windowed_fft':
+        window = windows.gaussian(len(signal), std=len(signal)/8)
+        signal_win = signal * window
+        f = np.fft.fftfreq(len(signal_win), d=1/sfreq)[:len(signal_win)//2]
+        S = np.abs(np.fft.fft(signal_win))[:len(signal_win)//2]
+    else:
+        raise ValueError(f"Unknown spectrum method: {method}")
+    return f, S
+
+def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None, max_points=1000, spectrum_method='fft'):
+    """
+    Plot original signal and PSD, then each mode and its PSD.
     """
     if duration is not None:
         n_samples_to_plot = int(sfreq * duration)
@@ -26,35 +44,42 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
 
     Nmode = modes.shape[0]
     ncols = 2
-    nrows = 2 + int(np.ceil(Nmode / ncols))
+    nrows = 1 + Nmode  # 1 row for signal + 1 for each mode
 
     plt.figure(figsize=(10, 2.5 * nrows))
 
-    # Original Signal
+    # Plot Original Signal Time Series
     plt.subplot(nrows, ncols, 1)
     plt.plot(t, x_ds, color='k')
     plt.title(f'Original Signal - Ch{ch}')
     plt.xlabel('Time (s)')
 
-    # Spectrum
+    # Plot Original Signal Spectrum (using helper)
     plt.subplot(nrows, ncols, 2)
-    f_fft = np.fft.fft(x)
-    f_fft = np.abs(f_fft[:len(f_fft)//2])
-    f_freq = np.fft.fftfreq(len(x), 1/sfreq)[:len(x)//2]
-    plt.plot(f_freq, f_fft, color='k')
-    plt.title(f'Spectrum - Ch{ch}')
+    f_fft, S_fft = compute_spectrum(x, sfreq, spectrum_method)
+    plt.plot(f_fft, S_fft, color='k')
+    plt.title(f'Spectrum ({spectrum_method}) - Ch{ch}')
     plt.xlabel('Frequency (Hz)')
 
-    # Modes
+    # Plot each Mode + its Spectrum
     for i in range(Nmode):
-        plt.subplot(nrows, ncols, 3 + i)
+        # Mode Time Series
+        plt.subplot(nrows, ncols, 2*i + 3)  # row i+2 col 1
         plt.plot(t, modes_ds[i], color='k')
-        plt.title(f'{method} Mode {i}')
+        plt.title(f'{method} Mode {i} - Time')
         plt.xlabel('Time (s)')
 
+        # Mode Spectrum (using helper)
+        plt.subplot(nrows, ncols, 2*i + 4)  # row i+2 col 2
+        f_mode, S_mode = compute_spectrum(modes[i], sfreq, spectrum_method)
+        plt.plot(f_mode, S_mode, color='k')
+        plt.title(f'{method} Mode {i} - Spectrum ({spectrum_method})')
+        plt.xlabel('Frequency (Hz)')
+
     plt.tight_layout()
-    plt.savefig(os.path.join(method_fig_dir, f'channel_{ch}_{method}_overview.png'))
+    plt.savefig(os.path.join(method_fig_dir, f'channel_{ch}_{method}_overview_{spectrum_method}.png'))
     plt.close()
+
 
 
 def plot_mvmd_grid(signal_data, mvmd_result, sfreq, output_path, downsample=True, max_points=5000):

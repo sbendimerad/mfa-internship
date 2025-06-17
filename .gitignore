@@ -6,3 +6,5 @@ __pycache__/
 notebooks/00_mne_tutorials/
 data/*
 figures/*
+extra_figures/*
+results/*

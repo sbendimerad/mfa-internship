@@ -24,16 +24,18 @@ def summarize_decomposition_results(signal_list, signal_names, sfreq,
                                      n_modes_to_use=None):
     """
     Load modes from disk, extract features, and compute reconstruction errors.
+
+    n_modes_to_use: int or None
+        Number of modes to consider for reconstruction and feature extraction.
+        If None, use all modes.
     """
     if methods_to_check is None:
         methods_to_check = ["EMD", "VMD", "VMDtransformer"]
 
     records = []
 
-
     for method in methods_to_check:
         for signal_name, original_signal in zip(signal_names, signal_list):
-
             mode_file = os.path.join(base_dir, signal_name, method, "modes", f"{signal_name}_modes.npy")
             if not os.path.exists(mode_file):
                 continue
@@ -41,10 +43,16 @@ def summarize_decomposition_results(signal_list, signal_names, sfreq,
             modes = np.load(mode_file)
             n_modes_extracted = modes.shape[0]
 
-            mse_full = compute_reconstruction_error(original_signal, modes)
-            mse_first = compute_reconstruction_error(original_signal,modes, n_modes_to_use=n_modes_to_use)
+            # Use n_modes_to_use or all modes if None
+            modes_for_error = modes[:n_modes_to_use] if n_modes_to_use else modes
 
-            for idx, mode in enumerate(modes):
+            mse_full = compute_reconstruction_error(original_signal, modes)
+            mse_first = compute_reconstruction_error(original_signal, modes_for_error)
+
+            # Limit modes to first n_modes_to_use for feature extraction as well
+            modes_for_features = modes[:n_modes_to_use] if n_modes_to_use else modes
+
+            for idx, mode in enumerate(modes_for_features):
                 feats, labels = extract_mode_features(mode, sfreq)
                 feat_dict = dict(zip(labels, feats))
 
