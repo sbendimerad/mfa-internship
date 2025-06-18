@@ -62,7 +62,7 @@ def analyze_signal_and_modes(signal, modes, scaling_ranges, q_vals, signal_name)
         "Mode": "Original",
         "Log-cumulant 1": pwt_signal.cumulants.data[0],
         "Log-cumulant 2": pwt_signal.cumulants.data[1],
-        "Log-cumulant 3": pwt_signal.cumulants.data[2],
+        #"Log-cumulant 3": pwt_signal.cumulants.data[2],
     })
 
     # Process each mode
@@ -75,7 +75,7 @@ def analyze_signal_and_modes(signal, modes, scaling_ranges, q_vals, signal_name)
             "Mode": f"Mode {i}",
             "Log-cumulant 1": pwt_mode.cumulants.data[0],
             "Log-cumulant 2": pwt_mode.cumulants.data[1],
-            "Log-cumulant 3": pwt_mode.cumulants.data[2],
+            #"Log-cumulant 3": pwt_mode.cumulants.data[2],
         })
 
     # Return dataframe summary
