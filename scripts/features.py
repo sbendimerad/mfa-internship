@@ -2,7 +2,43 @@ import os
 import numpy as np
 import pandas as pd
 from scipy.signal import periodogram
-from scipy.stats import entropy, kurtosis, skew
+from scipy.stats import entropy, kurtosis, skew 
+from scipy.signal import hilbert, welch
+
+
+def extract_mode_features_01(mode, Fs):
+    mode = np.asarray(mode).flatten()
+    hilb = hilbert(mode)
+    A = np.abs(hilb)
+    A = A[150:-150]  # remove borders
+    phase = np.unwrap(np.angle(hilb[150:-150]))
+    inst_freq = np.diff(phase) * Fs / (2 * np.pi)
+    E = np.sum(np.abs(hilb[150:-150]) ** 2) / len(A)
+    CW = np.sum(np.diff(phase) * Fs * A[:-1]**2) / (2 * np.pi * E)
+    AM = np.sqrt(np.sum((np.diff(A) * Fs) ** 2)) / E
+    BM = np.sqrt(np.sum(((inst_freq - CW) ** 2) * A[:-1]**2) / E)
+
+    # Welch PSD
+    f, Pxx = welch(mode, fs=Fs, nperseg=1024, noverlap=int(0.85*1024))
+    Pxx /= np.sum(Pxx)
+    ent = -np.sum(Pxx * np.log2(Pxx + 1e-12))  # spectral entropy
+    Spow = np.mean(Pxx**2)
+    Cent = np.sum(f * Pxx)
+    Ppeak = np.max(Pxx)
+    Pfreq = f[np.argmax(Pxx)]
+
+    skew_val = skew(mode)
+    kurt_val = kurtosis(mode)
+
+    dx = np.diff(mode)
+    ddx = np.diff(dx)
+    Hmob = np.sqrt(np.var(dx) / np.var(mode)) if np.var(mode) > 0 else 0.0
+    Hcomp = (np.sqrt(np.var(ddx) / np.var(dx)) / Hmob) if Hmob > 0 else 0.0
+
+    features = [AM, BM, ent, Spow, Cent, Ppeak, Pfreq, skew_val, kurt_val, Hmob, Hcomp]
+    labels = ["AM", "BM", "ent", "pow", "Cent", "Ppeak", "Pfreq", "skew", "kurt", "Hmob", "Hcomp"]
+
+    return features, labels
 
 def extract_mode_features(mode, Fs):
     """Compute features from a single mode."""
@@ -72,7 +108,7 @@ def compute_features_from_modes_and_save(modes_path, output_features_path, Fs):
     all_labels = []
 
     for idx, mode in enumerate(modes):
-        feats, labels = extract_mode_features(mode, Fs)
+        feats, labels = extract_mode_features_01(mode, Fs)
         all_features.extend(feats)
         all_labels.extend([f"{label}{idx}" for label in labels])
 
