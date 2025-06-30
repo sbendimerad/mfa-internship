@@ -25,7 +25,8 @@ def extract_mode_features_01(mode, Fs):
     Spow = np.mean(Pxx**2)
     Cent = np.sum(f * Pxx)
     Ppeak = np.max(Pxx)
-    Pfreq = f[np.argmax(Pxx)]
+    Pxx_norm = Pxx / np.sum(Pxx)
+    Pfreq = f[np.argmax(Pxx_norm)]
 
     skew_val = skew(mode)
     kurt_val = kurtosis(mode)
