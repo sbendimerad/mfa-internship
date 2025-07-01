@@ -54,14 +54,6 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
     plt.title(f'Original Signal - Ch{ch}')
     plt.xlabel('Time (s)')
 
-    # Plot Original Signal Spectrum (using helper)
-    # plt.subplot(nrows, ncols, 2)
-    # f_fft, S_fft = compute_spectrum(x, sfreq, spectrum_method)
-    # plt.plot(f_fft, S_fft, color='k')
-    # plt.title(f'Spectrum ({spectrum_method}) - Ch{ch}')
-    # plt.xlabel('Frequency (Hz)')
-
-
     plt.subplot(nrows, ncols, 2)
     f_fft, S_fft = compute_spectrum(x, sfreq, spectrum_method)
     plt.loglog(f_fft, S_fft, color='k')
@@ -79,10 +71,6 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
 
         # Mode Spectrum (using helper)
         plt.subplot(nrows, ncols, 2*i + 4)  # row i+2 col 2
-        # f_mode, S_mode = compute_spectrum(modes[i], sfreq, spectrum_method)
-        # plt.plot(f_mode, S_mode, color='k')
-        # plt.title(f'{method} Mode {i} - Spectrum ({spectrum_method})')
-        # plt.xlabel('Frequency (Hz)')
 
         f_mode, S_mode = compute_spectrum(modes[i], sfreq, spectrum_method)
         plt.loglog(f_mode, S_mode, color='k')
@@ -90,11 +78,11 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
         plt.xlabel('Frequency (Hz)')
         plt.ylabel('Amplitude')
 
+    # Save figure
+    plot_path = os.path.join(method_fig_dir, f"channel_{ch}_{method}_{spectrum_method}.png")
     plt.tight_layout()
-    plt.savefig(os.path.join(method_fig_dir, f'channel_{ch}_{method}_overview_{spectrum_method}.png'))
+    plt.savefig(plot_path)
     plt.close()
-
-
 
 def plot_mvmd_grid(signal_data, mvmd_result, sfreq, output_path, downsample=True, max_points=5000):
     """
