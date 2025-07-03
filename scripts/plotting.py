@@ -1,27 +1,38 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import welch, windows
+from scipy.signal import welch, iirnotch, filtfilt
 
-def compute_spectrum(signal, sfreq, method='fft'):
+def notch_filter(signal, fs, freq=50.0, Q=30.0):
+    b, a = iirnotch(freq, Q, fs)
+    filtered = filtfilt(b, a, signal)
+    return filtered
+
+def compute_spectrum(signal, sfreq, method='psd', return_db=True):
     """
-    Compute frequency and spectrum amplitude based on chosen method.
+    Compute frequency and spectrum (in dB if requested) after normalizing signal.
+    method: 'psd' (Welch), 'fft', or 'windowed_fft'
     """
+    # mean = np.mean(signal)
+    # std = np.std(signal)
+    # signal = (signal - mean) / std
+    # signal = notch_filter(signal, sfreq, freq=50.0)
+    # signal = notch_filter(signal, sfreq, freq=100.0)
+
     if method == 'fft':
         f = np.fft.fftfreq(len(signal), d=1/sfreq)[:len(signal)//2]
-        S = np.abs(np.fft.fft(signal))[:len(signal)//2]
+        S = np.abs(np.fft.fft(signal))[:len(signal)//2] ** 2
     elif method == 'psd':
-        f, S = welch(signal, fs=sfreq, nperseg=1024)
-    elif method == 'windowed_fft':
-        window = windows.gaussian(len(signal), std=len(signal)/8)
-        signal_win = signal * window
-        f = np.fft.fftfreq(len(signal_win), d=1/sfreq)[:len(signal_win)//2]
-        S = np.abs(np.fft.fft(signal_win))[:len(signal_win)//2]
-    else:
-        raise ValueError(f"Unknown spectrum method: {method}")
+        f, S = welch(signal, fs=sfreq, nperseg=1024, window='hann')
+
+    if return_db:
+        S = 10 * np.log10(S + 1e-30)
+        mask = (np.abs(f - 50) < 1) | (np.abs(f - 100) < 1)
+        S[mask] = np.nan  # Hide those spikes
+
     return f, S
 
-def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None, max_points=1000, spectrum_method='fft'):
+def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None, max_points=1000, spectrum_method='psd'):
     """
     Plot original signal and PSD, then each mode and its PSD.
     """
@@ -56,29 +67,25 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
 
     plt.subplot(nrows, ncols, 2)
     f_fft, S_fft = compute_spectrum(x, sfreq, spectrum_method)
-    plt.loglog(f_fft, S_fft, color='k')
+    plt.semilogx(f_fft, S_fft, color='k')
     plt.title(f'Spectrum ({spectrum_method}) - Ch{ch}')
     plt.xlabel('Frequency (Hz)')
-    plt.ylabel('Amplitude')
+    plt.ylabel('Power (dB)')
 
     # Plot each Mode + its Spectrum
     for i in range(Nmode):
-        # Mode Time Series
-        plt.subplot(nrows, ncols, 2*i + 3)  # row i+2 col 1
+        plt.subplot(nrows, ncols, 2*i + 3)
         plt.plot(t, modes_ds[i], color='k')
         plt.title(f'{method} Mode {i} - Time')
         plt.xlabel('Time (s)')
 
-        # Mode Spectrum (using helper)
-        plt.subplot(nrows, ncols, 2*i + 4)  # row i+2 col 2
-
+        plt.subplot(nrows, ncols, 2*i + 4)
         f_mode, S_mode = compute_spectrum(modes[i], sfreq, spectrum_method)
-        plt.loglog(f_mode, S_mode, color='k')
+        plt.semilogx(f_mode, S_mode, color='k')
         plt.title(f'{method} Mode {i} - Spectrum ({spectrum_method})')
         plt.xlabel('Frequency (Hz)')
-        plt.ylabel('Amplitude')
+        plt.ylabel('Power (dB)')
 
-    # Save figure
     plot_path = os.path.join(method_fig_dir, f"channel_{ch}_{method}_{spectrum_method}.png")
     plt.tight_layout()
     plt.savefig(plot_path)
@@ -117,3 +124,6 @@ def plot_mvmd_grid(signal_data, mvmd_result, sfreq, output_path, downsample=True
     plt.tight_layout()
     plt.savefig(output_path)
     plt.close()
+
+
+    
