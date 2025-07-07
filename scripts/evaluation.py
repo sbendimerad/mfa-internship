@@ -16,8 +16,6 @@ def compute_reconstruction_error(original_signal, modes, n_modes_to_use=None):
     var = np.var(original_signal)
     return mse / var if var > 0 else np.nan
 
-
-
 def summarize_decomposition_results(signal_list, signal_names, sfreq,
                                      base_dir='results/synthetic',
                                      methods_to_check=None,

@@ -114,7 +114,7 @@ def plot_signal_and_modes(x, sfreq, modes, method, ch, output_dir, duration=None
         plt.ylabel('Power (dB)')
 
         # === Save the figure ===
-    plot_path = os.path.join(method_fig_dir, f"channel_{ch}_{method}_{spectrum_method}.png")
+    plot_path = os.path.join(method_fig_dir, f"channel_{ch}_{method}_{spectrum_method}_std.png")
     plt.tight_layout()
     plt.savefig(plot_path)
     plt.close()
