@@ -14,6 +14,39 @@ def compute_mfa(signal, scaling_ranges, q_vals):
     pwt = mfa(WTpL, scaling_ranges, weighted='Nj', q=q_vals)
     return pwt
 
+def mfa_on_envelope_centroids(modes_df, scaling_ranges, q_vals, output_base):
+    summary_records = []
+
+    for clust_id in sorted(modes_df["kmeans_cluster"].unique()):
+        print(f"\n📊 Processing cluster {clust_id}")
+
+        # Extract list of envelopes
+        cluster_signals = modes_df[modes_df["kmeans_cluster"] == clust_id]["envelope_a"].tolist()
+
+        try:
+            centroid = np.mean(np.stack(cluster_signals), axis=0)
+        except Exception as e:
+            print(f"❌ Failed to compute centroid for cluster {clust_id}: {e}")
+            continue
+
+        try:
+            pwt_centroid = compute_mfa(centroid, scaling_ranges, q_vals)
+            plot_mfa(pwt_centroid, ch_label=f"Cluster {clust_id} Centroid Envelope")
+
+            summary_records.append({
+                "Cluster": clust_id,
+                "Mode": "Centroid",
+                "Log-cumulant 1": pwt_centroid.cumulants.values[0],
+                "Log-cumulant 2": pwt_centroid.cumulants.values[1]
+            })
+
+        except Exception as e:
+            print(f"❌ MFA failed for cluster {clust_id}: {e}")
+            continue
+
+    summary_df = pd.DataFrame(summary_records)
+    return summary_df
+
 
 def plot_mfa(pwt, ch_label=""):
     import matplotlib.pyplot as plt
