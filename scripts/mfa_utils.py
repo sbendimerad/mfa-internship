@@ -14,39 +14,38 @@ def compute_mfa(signal, scaling_ranges, q_vals):
     pwt = mfa(WTpL, scaling_ranges, weighted='Nj', q=q_vals)
     return pwt
 
-def mfa_on_envelope_centroids(modes_df, scaling_ranges, q_vals, output_base):
-    summary_records = []
+# def mfa_on_envelope_centroids(modes_df, scaling_ranges, q_vals, output_base):
+#     summary_records = []
 
-    for clust_id in sorted(modes_df["kmeans_cluster"].unique()):
-        print(f"\n📊 Processing cluster {clust_id}")
+#     for clust_id in sorted(modes_df["kmeans_cluster"].unique()):
+#         print(f"\n📊 Processing cluster {clust_id}")
 
-        # Extract list of envelopes
-        cluster_signals = modes_df[modes_df["kmeans_cluster"] == clust_id]["envelope_a"].tolist()
+#         # Extract list of envelopes
+#         cluster_signals = modes_df[modes_df["kmeans_cluster"] == clust_id]["envelope_a"].tolist()
 
-        try:
-            centroid = np.mean(np.stack(cluster_signals), axis=0)
-        except Exception as e:
-            print(f"❌ Failed to compute centroid for cluster {clust_id}: {e}")
-            continue
+#         try:
+#             centroid = np.mean(np.stack(cluster_signals), axis=0)
+#         except Exception as e:
+#             print(f"❌ Failed to compute centroid for cluster {clust_id}: {e}")
+#             continue
 
-        try:
-            pwt_centroid = compute_mfa(centroid, scaling_ranges, q_vals)
-            plot_mfa(pwt_centroid, ch_label=f"Cluster {clust_id} Centroid Envelope")
+#         try:
+#             pwt_centroid = compute_mfa(centroid, scaling_ranges, q_vals)
+#             plot_mfa(pwt_centroid, ch_label=f"Cluster {clust_id} Centroid Envelope")
 
-            summary_records.append({
-                "Cluster": clust_id,
-                "Mode": "Centroid",
-                "Log-cumulant 1": pwt_centroid.cumulants.values[0],
-                "Log-cumulant 2": pwt_centroid.cumulants.values[1]
-            })
+#             summary_records.append({
+#                 "Cluster": clust_id,
+#                 "Mode": "Centroid",
+#                 "Log-cumulant 1": pwt_centroid.cumulants.values[0],
+#                 "Log-cumulant 2": pwt_centroid.cumulants.values[1]
+#             })
 
-        except Exception as e:
-            print(f"❌ MFA failed for cluster {clust_id}: {e}")
-            continue
+#         except Exception as e:
+#             print(f"❌ MFA failed for cluster {clust_id}: {e}")
+#             continue
 
-    summary_df = pd.DataFrame(summary_records)
-    return summary_df
-
+#     summary_df = pd.DataFrame(summary_records)
+#     return summary_df
 
 def plot_mfa(pwt, ch_label=""):
     import matplotlib.pyplot as plt
@@ -113,3 +112,118 @@ def analyze_signal_and_modes(signal, modes, scaling_ranges, q_vals, signal_name)
 
     # Return dataframe summary
     return pd.DataFrame(records)
+
+
+def mfa_on_envelope_centroids(modes_df, scaling_ranges, q_vals, output_base, group_by="kmeans_cluster"):
+    """
+    Compute MFA on centroids of envelopes grouped by a label (e.g., cluster or mode index),
+    and display physiological band names instead of raw IDs.
+
+    Parameters:
+    - modes_df: DataFrame containing envelopes
+    - scaling_ranges: scales for MFA integration
+    - q_vals: range of q values
+    - output_base: base output path
+    - group_by: column to group signals by, e.g., "kmeans_cluster" or "mode_idx"
+    """
+    summary_records = []
+
+    # Optional: Mapping from cluster ID to physiological band name
+
+
+    cluster_name_map = {
+        0: "High-Freq Noise",
+        1: "Beta",
+        2: "Low-Freq Noise",
+        3: "High Gamma",
+        4: "Alpha",
+        5: "Low Gamma",
+    }
+
+    if group_by not in modes_df.columns:
+        raise ValueError(f"❌ The column '{group_by}' does not exist in modes_df.")
+
+    for group_id in sorted(modes_df[group_by].unique()):
+        print(f"\n📊 Processing {group_by} = {group_id}")
+
+        # Label for plots and table
+        if group_by == "kmeans_cluster":
+            label = cluster_name_map.get(group_id, f"Cluster {group_id}")
+        else:
+            label = f"{group_by} {group_id}"
+
+        # Extract envelopes in this group
+        group_signals = modes_df[modes_df[group_by] == group_id]["envelope"].tolist()
+
+        try:
+            centroid = np.mean(np.stack(group_signals), axis=0)
+        except Exception as e:
+            print(f"❌ Failed to compute centroid for {group_by} = {group_id}: {e}")
+            continue
+
+        try:
+            pwt_centroid = compute_mfa(centroid, scaling_ranges, q_vals)
+            plot_mfa(pwt_centroid, ch_label=f"{label} — Centroid Envelope")
+
+            summary_records.append({
+                "Cluster": label,
+                "Mode": "Centroid",
+                "Log-cumulant 1": pwt_centroid.cumulants.values[0],
+                "Log-cumulant 2": pwt_centroid.cumulants.values[1]
+            })
+
+        except Exception as e:
+            print(f"❌ MFA failed for {label}: {e}")
+            continue
+
+    summary_df = pd.DataFrame(summary_records)
+    return summary_df
+
+
+
+
+# def mfa_on_envelope_centroids(modes_df, scaling_ranges, q_vals, output_base, group_by="kmeans_cluster"):
+#     """
+#     Compute MFA on centroids of envelopes grouped by a label (e.g., cluster or mode index).
+
+#     Parameters:
+#     - modes_df: DataFrame containing envelopes
+#     - scaling_ranges: scales for MFA integration
+#     - q_vals: range of q values
+#     - output_base: base output path
+#     - group_by: column to group signals by, e.g., "kmeans_cluster" or "mode_idx"
+#     """
+#     summary_records = []
+
+#     if group_by not in modes_df.columns:
+#         raise ValueError(f"❌ The column '{group_by}' does not exist in modes_df.")
+
+#     for group_id in sorted(modes_df[group_by].unique()):
+#         print(f"\n📊 Processing {group_by} = {group_id}")
+
+#         # Extract envelopes in this group
+#         group_signals = modes_df[modes_df[group_by] == group_id]["envelope"].tolist()
+
+#         try:
+#             centroid = np.mean(np.stack(group_signals), axis=0)
+#         except Exception as e:
+#             print(f"❌ Failed to compute centroid for {group_by} = {group_id}: {e}")
+#             continue
+
+#         try:
+#             pwt_centroid = compute_mfa(centroid, scaling_ranges, q_vals)
+#             plot_mfa(pwt_centroid, ch_label=f"{group_by} {group_id} Centroid Envelope")
+
+#             summary_records.append({
+#                 group_by: group_id,
+#                 "Mode": "Centroid",
+#                 "Log-cumulant 1": pwt_centroid.cumulants.values[0],
+#                 "Log-cumulant 2": pwt_centroid.cumulants.values[1]
+#             })
+
+#         except Exception as e:
+#             print(f"❌ MFA failed for {group_by} = {group_id}: {e}")
+#             continue
+
+#     summary_df = pd.DataFrame(summary_records)
+#     return summary_df

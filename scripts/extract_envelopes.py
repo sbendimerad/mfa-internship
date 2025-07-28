@@ -4,6 +4,7 @@ import pandas as pd
 import pywt
 import traceback
 
+
 def extract_envelopes_modes(base_dir, method='VMD', sfreq=250, features_df_path=None, overwrite=False):
     """
     Extracts and saves the envelope for each mode using CWT from Morlet wavelet.
@@ -68,4 +69,62 @@ def extract_envelopes_modes(base_dir, method='VMD', sfreq=250, features_df_path=
 
         except Exception as e:
             print(f"❌ Error processing channel {ch_folder}: {e}")
+            traceback.print_exc()
+
+
+
+
+
+def extract_mvmd_envelopes(u, omega, save_dir, sfreq=250, wavelet_name='cmor5.0-1.0'):
+    """
+    Extracts and saves envelopes for MVMD modes using CWT based on omega peak frequencies.
+
+    Parameters:
+    - u: np.ndarray of shape (n_modes, n_samples, n_channels)
+    - omega: torch.Tensor or np.ndarray of shape (1, n_modes), already multiplied by fs
+    - save_dir: directory to save each channel's envelopes
+    - sfreq: sampling frequency in Hz
+    - wavelet_name: name of the complex Morlet wavelet for CWT
+    """
+
+    os.makedirs(save_dir, exist_ok=True)
+
+    n_modes, n_samples, n_channels = u.shape
+
+    # Ensure omega is NumPy and real-valued
+    if hasattr(omega, 'detach'):
+        omega = omega.detach().cpu().numpy()
+    if np.iscomplexobj(omega):
+        omega = omega.real
+    omega = omega.squeeze()  # Shape: (n_modes,)
+    
+    print(f"✅ Omega (Hz): {omega} | Shape: {omega.shape}")
+
+    # Define wavelet
+    wavelet = pywt.ContinuousWavelet(wavelet_name)
+
+    for ch in range(n_channels):
+        try:
+            print(f"🔍 Processing channel {ch}...")
+
+            envelopes = np.zeros((n_modes, n_samples))
+
+            for m in range(n_modes):
+                signal = u[m, :, ch]
+                peak_freq = omega[m]
+
+                # Compute scale
+                scale = pywt.frequency2scale(wavelet, peak_freq) * sfreq
+
+                # Perform CWT
+                coeffs, _ = pywt.cwt(signal, [scale], wavelet)
+                envelopes[m] = np.abs(coeffs[0])
+
+            # Save
+            save_path = os.path.join(save_dir, f"meg_channel_{ch}_envelopes.npy")
+            np.save(save_path, envelopes)
+            print(f"✅ Saved envelopes for channel {ch} to {save_path}")
+
+        except Exception as e:
+            print(f"❌ Error processing channel {ch}: {e}")
             traceback.print_exc()

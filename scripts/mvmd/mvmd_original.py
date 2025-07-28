@@ -1,5 +1,3 @@
-
-
 def mvmd(signal, alpha, tau, K, DC, init, tol, max_N):
     # ---------------------
     #  signal  - the time domain signal (1D) to be decomposed
