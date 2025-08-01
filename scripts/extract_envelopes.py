@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import pywt
 import traceback
 
@@ -70,9 +71,6 @@ def extract_envelopes_modes(base_dir, method='VMD', sfreq=250, features_df_path=
         except Exception as e:
             print(f"❌ Error processing channel {ch_folder}: {e}")
             traceback.print_exc()
-
-
-
 
 
 def extract_mvmd_envelopes(u, omega, save_dir, sfreq=250, wavelet_name='cmor5.0-1.0'):
