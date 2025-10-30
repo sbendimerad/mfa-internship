@@ -12,8 +12,8 @@ The main focus is on applying **Variational Mode Decomposition (VMD)** and **Mul
 - **Visualize and evaluate** results with dedicated plotting scripts.  
 
 The core logic is demonstrated in two main notebooks:  
-- 📓 [VMD pipeline](notebooks/01_vmd_pipeline..ipynb)  
-- 📓 [MVMD pipeline](notebooks/02_mvmd_pipeline.ipynb)  
+- 📓 [VMD pipeline](notebooks/01_vmd_on_realdata_pipeline)  
+- 📓 [MVMD pipeline](notebooks/02_mvmd_on_realdata_pipeline)  
 
 Other notebooks provide simulations, animations, and wavelet-based experiments.
 
