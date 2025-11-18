@@ -1,93 +1,94 @@
-# Multifractal Analysis Internship Project 🧠📊
 
-This repository contains the code and notebooks from my internship project on **multifractal analysis of time series**.  
-The main focus is on applying **Variational Mode Decomposition (VMD)** and **Multivariate VMD (MVMD)** for analyzing synthetic multifractal signals.
+# 🧠 MEG Signal Decomposition Project: VMD and MVMD Analysis
 
----
+## 🎯 Project Overview
 
-## 🚀 Project Overview
-- **Simulate** multifractal synthetic processes (e.g., MRW, FBM).  
-- **Decompose** signals with VMD and MVMD.  
-- **Extract features** (spectral envelopes, multifractal indicators).  
-- **Visualize and evaluate** results with dedicated plotting scripts.  
 
-The core logic is demonstrated in two main notebooks:  
-- 📓 [VMD pipeline](notebooks/01_vmd_on_realdata_pipeline)  
-- 📓 [MVMD pipeline](notebooks/02_mvmd_on_realdata_pipeline)  
+This repository contains the full pipeline for analyzing **Magnetoencephalography (MEG) resting-state data** using various decomposition methods: **Empirical Mode Decomposition (EMD)**, **Univariate Variational Mode Decomposition (VMD)**, and **Multivariate Variational Mode Decomposition (MVMD)**.
 
-Other notebooks provide simulations, animations, and wavelet-based experiments.
+The overarching goal is to use these signal decomposition methods to see if extracting narrowband oscillatory **modes improves the Multifractal Analysis (MFA)** for detecting scale invariance in neural dynamics.
 
----
+The **MFA** was specifically conducted using the **[pymultifracs library](https://github.com/neurospin/pymultifracs/tree/master/pymultifracs)**, which was developed inside the **MInd Team (CEA Neurospin)** by **Merlin Dumeur**.
 
-## 📂 Repository Structure
-```
-notebooks/          # Main pipelines & experiments
-  00_simulation_pipeline.ipynb
-  01_vmd_pipeline..ipynb
-  02_mvmd_pipeline.ipynb
-  Extra_animations.ipynb
-  Extra_pywt_enveloppes.ipynb
+### 🧪 Decomposition Rationale
 
-scripts/            # Functions used inside notebooks
-  decomposition.py
-  evaluation.py
-  extract_envelopes.py
-  features.py
-  mfa_utils.py
-  plotting.py
-  simulation.py
-  mvmd/
-    mvmd_original.py
-    mvmd_optimized.py
+Our work started by benchmarking three methods: EMD, VMD, and MVMD:
 
-results/            # Example outputs (MRW, FBM, etc.)
-requirements.txt
-README.md
-```
+* **EMD:** Due to its lack of rigorous mathematical foundations, EMD was tested only on simulation data and subsequently **abandoned** for real-world application.
+* **VMD:** VMD demonstrated better performance and was retained for analysis on both synthetic and real MEG data.
+* **MVMD:** This is the **multivariate version of VMD**. It was adopted to see if, by analyzing the multi-channel neuro data, we could extract shared modes that **capture spatial interactions** across sensors, thereby reducing the need for channel-by-channel analysis.
+
+### 👥 How to Use This Work
+
+This repository supports two main use cases:
+
+1.  **Reproduce My Internship Results:** Follow the setup and notebook steps to replicate the complete analysis pipeline.
+2.  **Apply Methods to Your Own Dataset:** Use the provided starting notebooks to quickly test EMD, VMD, and MVMD on your own data.
 
 ---
 
-## ⚙️ Installation
+## 🚀 Getting Started
 
-Clone the repository and install dependencies:
+### 1. 🐍 Setting up the Conda Environment
+
+We recommend setting up the environment using Conda:
 
 ```bash
-git clone https://github.com/sbendimerad/mfa-internship.git
-cd mfa-internship
-pip install -r requirements.txt
-```
+# Create the environment from my provided requirements.txt 
+conda env create -f requirements.txt 
+conda activate meg-vmd
 
-Recommended: use a virtual environment (`conda` or `venv`).
+````
 
----
+### 2\. 📁 Data Acquisition (Crucial Step\!)
 
-## ▶️ Usage
+**⚠️ The necessary data files are NOT included in this repository.**
 
-### Open the main notebooks
-Run Jupyter to explore the pipelines:
-```bash
-jupyter notebook
-```
+To run the analysis notebooks, you must **contact the project author** to obtain the required data files. Once obtained, please place them in the following directory structure:
 
-- `01_vmd_pipeline..ipynb` → Full pipeline using **VMD**.  
-- `02_mvmd_pipeline.ipynb` → Full pipeline using **MVMD**.  
+| Required File | Description | Location to Place |
+| :--- | :--- | :--- |
+| `sub-01_ses-01_task-rest_proc-filt_raw.fif` | **Original MEG Data.** Required for notebooks `01_vmd_pipeline.ipynb` and `02_mvmd_on_realdata_pipeline.ipynb`. | `data/` |
+| `mvmd_modes_sub-01.npz` | **Pre-computed MVMD Results.** Required to run `02_mvmd_on_realdata_pipeline.ipynb` (analysis notebook). | `results/real/MVMD/modes/` |
 
-Both notebooks call functions defined in the `scripts/` folder.  
+-----
 
-### Example: using scripts directly
-```python
-from scripts.decomposition import vmd
-from scripts.mvmd.mvmd_optimized import mvmd
-from scripts.features import extract_features
-```
+## 💻 Option 1: Reproducing The Results of My Report
 
----
+Once the Conda environment is active and the data files are in place, launch Jupyter Lab:
 
-## 📊 Results
-Example results (synthetic MRW, FBM, modulated processes) are available under the `results/` folder.  
-Animations and plots are generated directly from the notebooks.  
+You can then run the following notebooks sequentially:
 
----
+| Notebook | Focus | Dependencies |
+| :--- | :--- | :--- |
+| `00_simulation_pipeline.ipynb` | Synthetic Benchmark | None (Self-contained) |
+| `01_vmd_pipeline.ipynb` | Univariate VMD Analysis | `data/sub-01...raw.fif` |
+| `02_mvmd_on_realdata_pipeline.ipynb` | MVMD Results Analysis | `data/sub-01...raw.fif` and `results/real/MVMD/modes/mvmd_modes_sub-01.npz` |
 
-## 👩‍💻 Author
-Developed by **Sabrine Bendimerad** as part of a research internship.
+-----
+
+## 🛠️ Running Your Own MVMD Decomposition (Optional)
+
+The MVMD decomposition is a computationally intensive process requiring specialized hardware. The main analysis notebook (`02_mvmd_on_realdata_pipeline.ipynb`) relies on **pre-computed results**.
+
+If you wish to run the decomposition yourself to produce your own results:
+
+1.  **Locate the Code:** The MVMD decomposition code is provided in the dedicated GPU directory:
+
+    ```bash
+    cd notebooks/notebooks_gpu/
+    ```
+
+2.  **Execution Requirement:** The notebook in this directory **requires GPU resources** (e.g., Google Colab Pro, dedicated server, or a local machine with a CUDA setup) to run successfully.
+
+3.  **Output:** Running this notebook will generate a new MVMD results file (`mvmd_modes_sub-01.npz`), which you can then use to replace the pre-computed file in the `results/real/MVMD/modes/` folder before running the analysis notebook.
+
+-----
+
+## 💻 Option 2 : Applying Methods to Your Dataset 
+
+If your goal is to quickly apply EMD, VMD, or MVMD to your own data, we have prepared simplified starting notebooks:
+
+  * **Location:** Navigate to the `notebooks/extras/starting_notebooks` folder.
+  * **Content:** Inside, you will find notebooks with simulation data to showcase the basic application and some analysis steps for EMD, VMD, and MVMD. You can easily adapt these notebooks to load and process your own time-series data.
+

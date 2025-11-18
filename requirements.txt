@@ -5,6 +5,7 @@ pandas
 seaborn
 scikit-learn
 sktime
+recombinator
 numba
 mne
 mne_bids
