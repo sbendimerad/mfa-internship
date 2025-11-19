@@ -67,7 +67,7 @@ You can then run the following notebooks sequentially:
 
 -----
 
-## 🛠️ Running Your Own MVMD Decomposition (Optional)
+## 🛠️ Running Your Own MVMD Decomposition
 
 The MVMD decomposition is a computationally intensive process requiring specialized hardware. The main analysis notebook (`02_mvmd_on_realdata_pipeline.ipynb`) relies on **pre-computed results**.
 
