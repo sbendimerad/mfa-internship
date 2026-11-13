@@ -15,6 +15,14 @@ The **MFA** procedures rely on the **[pymultifracs library](https://github.com/n
 
 ---
 
+## 📄 Report
+
+The full MSc thesis is in [`report/`](report/Bendimerad_2025_MSc_thesis_multifractal_MEG.pdf):
+*Improved multifractal analysis of brain oscillations in MEG time series*
+(Master in Computational Neuroscience and Neuroengineering, Université Paris-Saclay / CentraleSupélec, 2025).
+
+---
+
 ## 🧪 Decomposition Rationale
 
 This project evaluates three decomposition strategies:
