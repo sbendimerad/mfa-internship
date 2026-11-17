@@ -126,6 +126,16 @@ To quickly test EMD, VMD, or MVMD on your own dataset, use the starter notebooks
 
 ---
 
+# ⚠️ Note: channel order of the MVMD outputs (fixed in November 2026)
+
+The last line of `mvmd` and `mvmd_torch` (`u = torch.fft.ifftshift(u, dim=-1)`) rolled the **channel** axis of the output: the modes returned for channel `c` belonged to channel `c - C // 2`. It is fixed in `src/mvmd.py` and in the GPU notebook.
+
+The results computed over all channels are not affected: the centre frequencies, the PSD and the multifractal analysis of the mean signal, and the average correlation between modes. Only the sensor labels are: which raw signal is drawn next to which modes (Figure 24 of the thesis) and the order of the sensors in the envelope correlation matrices (Figure 26). The saved outputs of the notebooks were produced before the fix.
+
+A maintained version of the MVMD implementation, with tests, is available as a library: [mvmd-torch](https://github.com/sbendimerad/mvmd-torch).
+
+---
+
 # 📬 Contact
 
 For additional information:

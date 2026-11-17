@@ -187,7 +187,8 @@ def mvmd(signal, alpha, tau, K, DC, init, tol, max_N):
             u_hat[:,k-1,c] = torch.fft.fftshift(torch.fft.fft(u[k-1,:,c])).conj()
     
     # ifftshift 
-    u = torch.fft.ifftshift(u, dim=-1)
+    # fixed (2026-11): the original line `u = torch.fft.ifftshift(u, dim=-1)` rolled the
+    # last axis, which is the channel axis: the modes of channel c belonged to channel c - C//2.
             
     
         
@@ -315,6 +316,7 @@ def mvmd_torch(signal, alpha, tau, K, DC, init, tol, max_N):
         for c in range(C):
             u_hat_final[:, k, c] = torch.fft.fftshift(torch.fft.fft(u[k, :, c])).conj()
 
-    u = torch.fft.ifftshift(u, dim=-1)
+    # fixed (2026-11): the original line `u = torch.fft.ifftshift(u, dim=-1)` rolled the
+    # last axis, which is the channel axis: the modes of channel c belonged to channel c - C//2.
 
     return u.real, u_hat_final, omega
